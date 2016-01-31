@@ -7,7 +7,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
-var quizesRoute = require('./routes/quizes.js');
+
 
 var partials = require('express-partials');
 
@@ -27,7 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(partials());
 app.use('/', routes);
-app.use('/quizes',quizesRoute);
+
 
 
 // catch 404 and forward to error handler
