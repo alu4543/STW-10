@@ -1,14 +1,12 @@
-# STW-6
-ExpressJS: Aplicación cliente servidor / Modificar la práctica anterior STW-5 de la temperatura con objetos y herencia (sin web workers) para que sea una aplicación ExpressJS. La tarea de conversión se ejecuta en el servidor. No hace falta que haga pruebas.
+# STW-7
+Siguiendo las instrucciones en el Módulo VI: El proyecto Quiz y MVC construya paso a paso la aplicación del cuestionario, utilizando  Favicon, Layouts, Controladores y Modelos
 
-## HTTP
-https://github.com/SYTW/miriada-upm-dsnh5jsnode/#m%C3%B3dulo-iv-http
+## Material
+### Video tutorial "El proyecto Quiz y MVC"
+https://campusvirtual.ull.es/1516/mod/url/view.php?id=105044
 
-## Transparencias de "HTTP" (Módulo IV) Archivo
-https://campusvirtual.ull.es/1516/mod/resource/view.php?id=101216
-
-## Repositorio de Introducción a Express
-https://github.com/SYTW/hello-express
+### PDF document : "El Proyecto Quiz y MVC"
+https://campusvirtual.ull.es/1516/pluginfile.php/161441/mod_resource/content/3/transp_modulo6.pdf
 
 ## Commands & Utilities
 #### express generator instalation
@@ -23,22 +21,22 @@ https://github.com/SYTW/hello-express
 
     $ npm install express-generator@4.9.0
 
-#### Express basic structure	genera
+#### Express basic structure generation
 
     $ node_modules/express-generator/bin/express
 
   For global installation (-g)
 
-    $ express --ejs converter
+    $ express --ejs quiz
 
 #### install dependencies:
 
-    $ cd converter
+    $ cd quiz
     $ npm install
 
 #### run the app:
 
-    $ SET DEBUG=converter:*
+    $ SET DEBUG=quiz:*
     $ npm start
 
 ## Layout & partial
@@ -69,32 +67,73 @@ https://github.com/SYTW/hello-express
 in <section > which will be changed for each view, the others views have only
 their own code of body.
 
-## controllers and routes
-1. imported javaScript controller and convert classes from previous practice
-  - See the files `convert.js` and `Measures.js` in the Directory `/controllers/`
+## Multiple questions
+### No database
+- The Model based on a JavaScript class. No database
 
-2. the router `routes/index` returns an array `return[result1,result2 ];`
+#### Model
+ - The directory models is added
+ this dir is downloaded from this rep : https://github.com/SYTW/basic-quiz by Casiano Rodriguez-Leon crguezl.
+  See the files  `quiz_model.js` y `abstract_quiz_model.js` in the Directory `models`
+ - Model based on a JavaScript class. No database
+#### Quiz controller
+- Adapting the controller functions of `quiz_controller.js` exports.question and exports.answer that previously served only one question and its answer and now serves multiple questions stored in the data model `quiz_model.js`.
 
-`var result = Converter.convert(req.body.original);`
-`var result1 = result[0];`
-`var result2 = result[1];`
+  See the file  `quiz_controller.js` in the Directory `controllers`
 
-  - See the file `index.js` in the Directory `/routes`
+#### routes:
 
-3. created the only one file router for the only one interface of the app
-  `routes/index` for `views/converters/index` where we have created two routes:
+Also had to modify the route /quizes/answer to redirect it to `quizController.answer` function the controller `quiz_controller.js` for a specific answer to a specific question indicated by `/:index`.
 
-  GET =>
+  `router.get('/quizes/answer/:index',   quizController.answer);`
 
-  `res.render('converters/index', { title: '', result1: "", result2: ""});`
+  See the file  `index.js` in the Directory `routes`
 
-  POST =>
+so we changed the action where to send the question
 
-  `res.render('converters/index',  {result1: result1 , result2: result2});`
+  `<form method="get" action="/quizes/answer/<%= index %>">`
 
-where result1 and result2 are the two member of this array result[result1, result2] exported by `convert.js`.
+  See the file  `question.ejs` in the Directory `views\quizes\`
 
-## views
-controllers are adapted the the unique view `index.ejs`  viewing the two inerfaces `<%= result1 %>` and `<%= result2 %>`.
+## questions routes modification
 
-  - See the file `index.ejs` in the Directory ``views/converters/`
+First we will add a link in  `views\layout.ejs` to the list of questions that we will create.
+`<span><a href="/quizes/questions">Lista de Preguntas</a></span>`
+
+### route /quizes/questions
+For add the route /quizes/questions for lists all the questions.
+1. in the controller `controllers\quiz_controller.js`
+we need to add a function `exports.questions` for render a list of question to the route `quizes/questions`
+
+  `res.render('quizes/questions', {list: questions});`
+
+2. Also had to add a new route in `routes\index.js` to the function `exports.questions`
+
+  `router.get('/quizes/questions', quizController.questions);`
+
+3. we had to create a function in `models\abstract_quiz_model.js` that returns the number of questions in a quiz.
+
+  `AbstractQuiz.prototype.quizLength = function() {
+    return this.q.length;
+  }`
+
+### link for question content.
+to make in the list each statement of the question is a link that for question content.
+1. We create a new view
+`views\quizes\questions.ejs`
+which assigns and shows list of questions exported `exports.questions` from the controller `controllers\quiz_controller.js`
+
+`for(var i = 0; i < list.length; i++){
+  <li> <a href="/quizes/questions/<%= i+1 %>"><%- list[i].pregunta %></a></li>
+}`
+
+### /quizes/questions/5 for showing the question number 5 .
+Add routes (for example) /quizes/questions/5 for showing the question number 5 .
+1. in the controller `controllers\quiz_controller.js`
+we need to add a function `exports.questionId` for render a specific question to the route `quizes/questions/:index`
+
+  `res.render('quizes/question', {pregunta: current.pregunta, index: index);`
+
+2. Also had to add a new route in `routes\index.js` to the function `exports.questionId`
+
+  `router.get('/quizes/questions/:index', quizController.questionId);`
